@@ -19,7 +19,10 @@ local function make_splits(opts)
 
 		local bottom = pane_tree.bottom
 		if bottom then
-			local split_args = { direction = "Bottom", cwd = bottom.cwd }
+			local split_args = { direction = "Bottom", cwd = bottom.cwd, domain = { DomainName = bottom.domain }}
+			if bottom.process then
+				split_args.args = bottom.process.argv
+			end
 			if opts.relative then
 				split_args.size = bottom.height / (pane_tree.height + bottom.height)
 			elseif opts.absolute then
@@ -31,7 +34,10 @@ local function make_splits(opts)
 
 		local right = pane_tree.right
 		if right then
-			local split_args = { direction = "Right", cwd = right.cwd }
+			local split_args = { direction = "Right", cwd = right.cwd, domain = { DomainName = right.domain }}
+			if right.process then
+				split_args.args = right.process.argv
+			end
 			if opts.relative then
 				split_args.size = right.width / (pane_tree.width + right.width)
 			elseif opts.absolute then
@@ -101,6 +107,10 @@ function pub.restore_tab(tab, tab_state, opts)
 		local split_args = { cwd = tab_state.pane_tree.cwd }
 		if tab_state.pane_tree.domain then
 			split_args.domain = { DomainName = tab_state.pane_tree.domain }
+		end
+		if tab_state.pane_tree.process then
+			split_args.args = tab_state.pane_tree.process.argv
+			split_args.cwd = tab_state.pane_tree.process.cwd
 		end
 		local new_pane = tab:active_pane():split(split_args)
 		tab_state.pane_tree.pane = new_pane

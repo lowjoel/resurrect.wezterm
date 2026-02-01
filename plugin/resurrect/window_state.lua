@@ -62,6 +62,10 @@ function pub.restore_window(window, window_state, opts)
 			if tab_state.pane_tree.domain then
 				spawn_tab_args.domain = { DomainName = tab_state.pane_tree.domain }
 			end
+			if tab_state.pane_tree.process then
+				spawn_tab_args.args = tab_state.pane_tree.process.argv
+				spawn_tab_args.cwd = tab_state.pane_tree.cwd
+			end
 			tab, opts.pane, _ = window:spawn_tab(spawn_tab_args)
 		end
 
