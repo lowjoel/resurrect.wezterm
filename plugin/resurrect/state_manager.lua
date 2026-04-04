@@ -2,7 +2,9 @@ local wezterm = require("wezterm") --[[@as Wezterm]] --- this type cast invokes 
 local file_io = require("resurrect.file_io")
 local utils = require("resurrect.utils")
 
-local pub = {}
+local pub = {
+	periodic_save_index = 0
+}
 
 ---@param file_name string
 ---@param type string
@@ -57,7 +59,13 @@ function pub.periodic_save(opts)
 	if opts.interval_seconds == nil then
 		opts.interval_seconds = 60 * 15
 	end
+	local saver_index = pub.periodic_save_index + 1
+	pub.periodic_save_index = saver_index
 	wezterm.time.call_after(opts.interval_seconds, function()
+		if pub.periodic_save_index ~= saver_index then
+			return
+		end
+
 		wezterm.emit("resurrect.state_manager.periodic_save.start", opts)
 		if opts.save_workspaces then
 			pub.save_state(require("resurrect.workspace_state").get_workspace_state())
