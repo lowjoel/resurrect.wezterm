@@ -103,13 +103,15 @@ local function insert_panes(root, panes)
 				process_info.ppid = nil
 				root.process = process_info
 			end
+		end
 
+		if domain == "local" or string.sub(domain, 1, 4) == "WSL:" then
 			if not root.alt_screen_active then
 				local nlines = root.pane:get_dimensions().scrollback_rows
 				if nlines > pub.max_nlines then
 					nlines = pub.max_nlines
 				end
-				root.text = root.pane:get_lines_as_escapes(nlines)
+				root.text = strip_trailing_whitespace(root.pane:get_lines_as_escapes(nlines))
 			end
 		end
 	end
@@ -141,6 +143,18 @@ local function insert_panes(root, panes)
 	end
 
 	return root
+end
+
+function strip_trailing_whitespace(s)
+	local n = s:len()
+	while n > 0 do
+		local ch = s:sub(n, n)
+		if ch ~= " " and ch ~= "\t" and ch ~= "\n" and ch ~= "\r" then
+			break
+		end
+		n = n - 1
+	end
+	return s:sub(0, n)
 end
 
 ---Create a pane tree from a list of PaneInformation

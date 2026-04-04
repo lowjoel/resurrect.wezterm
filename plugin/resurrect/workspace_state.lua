@@ -13,7 +13,9 @@ function pub.restore_workspace(workspace_state, opts)
 
 	wezterm.emit("resurrect.workspace_state.restore_workspace.start")
 	if opts == nil then
-		opts = {}
+		opts = {
+			on_pane_restore = require("resurrect.tab_state").default_on_pane_restore
+		}
 	end
 
 	for i, window_state in ipairs(workspace_state.window_states) do

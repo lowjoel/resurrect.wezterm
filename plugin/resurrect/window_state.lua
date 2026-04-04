@@ -45,7 +45,9 @@ end
 function pub.restore_window(window, window_state, opts)
 	wezterm.emit("resurrect.window_state.restore_window.start")
 	if opts == nil then
-		opts = {}
+		opts = {
+			on_pane_restore = require("resurrect.tab_state").default_on_pane_restore,
+		}
 	end
 
 	if window_state.title then

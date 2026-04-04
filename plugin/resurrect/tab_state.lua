@@ -159,11 +159,18 @@ end
 function pub.default_on_pane_restore(pane_tree)
 	local pane = pane_tree.pane
 
-	-- Spawn process if using alt screen, otherwise restore text
+	if pane_tree.text then
+		pane:inject_output(pane_tree.text)
+		-- Follows the message in Windows Terminal.
+		-- See https://github.com/microsoft/terminal/blob/83b9569ce0393f2de99ffa5ea17fdc869e699090/src/cascadia/TerminalControl/ControlCore.cpp#L1905
+		-- However, we reset the terminal before adding the newline (the first \r\n is placed after the reset sequence)
+		local time = wezterm.time.now():format("%c")
+		local message = "\u{1b}[0m\r\n\u{1b}[100;37m  [Restored " .. time .. "]\u{1b}[K\u{1b}[m\r\n"
+		pane:inject_output(message)
+	end
+
 	if pane_tree.alt_screen_active then
 		pane:send_text(wezterm.shell_join_args(pane_tree.process.argv) .. "\r\n")
-	elseif pane_tree.text then
-		pane:inject_output(pane_tree.text:gsub("%s+$", ""))
 	end
 end
 
