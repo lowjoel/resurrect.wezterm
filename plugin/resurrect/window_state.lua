@@ -68,6 +68,10 @@ function pub.restore_window(window, window_state, opts)
 				spawn_tab_args.args = tab_state.pane_tree.process.argv
 				spawn_tab_args.cwd = tab_state.pane_tree.cwd
 			end
+			if spawn_tab_args.args and (#spawn_tab_args.args > 0) and (spawn_tab_args.args[1]:sub(1, 1) == "-") then
+				spawn_tab_args.args[1] = spawn_tab_args.args[1]:sub(2)
+				table.insert(spawn_tab_args.args, "-l")
+			end
 			tab, opts.pane, _ = window:spawn_tab(spawn_tab_args)
 		end
 
