@@ -45,7 +45,9 @@ end
 function pub.restore_window(window, window_state, opts)
 	wezterm.emit("resurrect.window_state.restore_window.start")
 	if opts == nil then
-		opts = {}
+		opts = {
+			on_pane_restore = require("resurrect.tab_state").default_on_pane_restore,
+		}
 	end
 
 	if window_state.title then
@@ -61,6 +63,14 @@ function pub.restore_window(window, window_state, opts)
 			local spawn_tab_args = { cwd = tab_state.pane_tree.cwd }
 			if tab_state.pane_tree.domain then
 				spawn_tab_args.domain = { DomainName = tab_state.pane_tree.domain }
+			end
+			if tab_state.pane_tree.process then
+				spawn_tab_args.args = tab_state.pane_tree.process.argv
+				spawn_tab_args.cwd = tab_state.pane_tree.cwd
+			end
+			if spawn_tab_args.args and (#spawn_tab_args.args > 0) and (spawn_tab_args.args[1]:sub(1, 1) == "-") then
+				spawn_tab_args.args[1] = spawn_tab_args.args[1]:sub(2)
+				table.insert(spawn_tab_args.args, "-l")
 			end
 			tab, opts.pane, _ = window:spawn_tab(spawn_tab_args)
 		end

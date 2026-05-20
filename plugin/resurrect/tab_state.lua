@@ -19,7 +19,10 @@ local function make_splits(opts)
 
 		local bottom = pane_tree.bottom
 		if bottom then
-			local split_args = { direction = "Bottom", cwd = bottom.cwd }
+			local split_args = { direction = "Bottom", cwd = bottom.cwd, domain = { DomainName = bottom.domain }}
+			if bottom.process then
+				split_args.args = bottom.process.argv
+			end
 			if opts.relative then
 				split_args.size = bottom.height / (pane_tree.height + bottom.height)
 			elseif opts.absolute then
@@ -31,7 +34,10 @@ local function make_splits(opts)
 
 		local right = pane_tree.right
 		if right then
-			local split_args = { direction = "Right", cwd = right.cwd }
+			local split_args = { direction = "Right", cwd = right.cwd, domain = { DomainName = right.domain }}
+			if right.process then
+				split_args.args = right.process.argv
+			end
 			if opts.relative then
 				split_args.size = right.width / (pane_tree.width + right.width)
 			elseif opts.absolute then
@@ -102,6 +108,10 @@ function pub.restore_tab(tab, tab_state, opts)
 		if tab_state.pane_tree.domain then
 			split_args.domain = { DomainName = tab_state.pane_tree.domain }
 		end
+		if tab_state.pane_tree.process then
+			split_args.args = tab_state.pane_tree.process.argv
+			split_args.cwd = tab_state.pane_tree.process.cwd
+		end
 		local new_pane = tab:active_pane():split(split_args)
 		tab_state.pane_tree.pane = new_pane
 	end
@@ -149,11 +159,18 @@ end
 function pub.default_on_pane_restore(pane_tree)
 	local pane = pane_tree.pane
 
-	-- Spawn process if using alt screen, otherwise restore text
+	if pane_tree.text then
+		pane:inject_output(pane_tree.text)
+		-- Follows the message in Windows Terminal.
+		-- See https://github.com/microsoft/terminal/blob/83b9569ce0393f2de99ffa5ea17fdc869e699090/src/cascadia/TerminalControl/ControlCore.cpp#L1905
+		-- However, we reset the terminal before adding the newline (the first \r\n is placed after the reset sequence)
+		local time = wezterm.time.now():format("%c")
+		local message = "\u{1b}[0m\r\n\u{1b}[100;37m  [Restored " .. time .. "]\u{1b}[K\u{1b}[m\r\n"
+		pane:inject_output(message)
+	end
+
 	if pane_tree.alt_screen_active then
 		pane:send_text(wezterm.shell_join_args(pane_tree.process.argv) .. "\r\n")
-	elseif pane_tree.text then
-		pane:inject_output(pane_tree.text:gsub("%s+$", ""))
 	end
 end
 
